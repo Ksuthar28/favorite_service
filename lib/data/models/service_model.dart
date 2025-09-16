@@ -14,7 +14,7 @@ class ServiceModel extends Service {
     return ServiceModel(
       id: json['id'] as int,
       title: json['title'] as String? ?? '',
-      body: json['body'] as String? ?? '',
+      body: json['category'] as String? ?? '',
     );
   }
 

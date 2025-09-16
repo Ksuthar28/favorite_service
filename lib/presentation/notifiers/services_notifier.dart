@@ -19,8 +19,22 @@ class ServicesNotifier extends StateNotifier<AsyncValue<List<Service>>> {
   bool _isFetching = false; // Tracks pagination fetch
   Set<int> favoriteIds = {}; // Cached favorite IDs
 
+  String _searchQuery = '';
+  List<Service> _allServices = []; // 👈 Keep unfiltered list here
+  List<Service> get allServices => _allServices;
+
+  final List<String> _recentSearches = [];
+
+  List<String> get recentSearches => _recentSearches;
+
+  String? _activeCategory;
+
+  String? get activeCategory => _activeCategory;
+
   /// Public getter for UI to show bottom loader
   bool get isFetching => _isFetching;
+
+  String get searchQuery => _searchQuery;
 
   /// Constructor
   /// Starts asynchronous initialization
@@ -56,6 +70,37 @@ class ServicesNotifier extends StateNotifier<AsyncValue<List<Service>>> {
     if (_isFetching) return;
     _page++;
     await _fetch(append: true);
+  }
+
+  void applyFilter(String query) {
+    _searchQuery = query;
+    if (query.isNotEmpty) {
+      _addToRecent(query);
+    }
+    final filtered = _allServices.where((service) {
+      return service.title.toLowerCase().contains(_searchQuery) ||
+          service.body.toLowerCase().contains(_searchQuery);
+    }).toList();
+
+    state = AsyncValue.data(filtered);
+  }
+
+  void _addToRecent(String query) {
+    // Remove duplicates and keep latest first
+    _recentSearches.remove(query);
+    _recentSearches.insert(0, query);
+
+    // Only keep top 3
+    if (_recentSearches.length > 3) {
+      _recentSearches.removeLast();
+    }
+  }
+
+  void setActiveCategory(String category) {
+    if (_activeCategory == category) return;
+    _activeCategory = category;
+    // Trigger rebuild for listeners
+    state = state.whenData((services) => List.from(services));
   }
 
   /// Refresh the service list (pull-to-refresh)
@@ -95,7 +140,11 @@ class ServicesNotifier extends StateNotifier<AsyncValue<List<Service>>> {
     state = state.whenData((services) => List.from(services));
 
     try {
-      final newServices = await getServices(page: _page, limit: _limit);
+      final newServices = await getServices(
+        page: _page,
+        limit: _limit,
+        // query: _searchQuery,
+      );
 
       if (!mounted) return;
 
@@ -106,6 +155,12 @@ class ServicesNotifier extends StateNotifier<AsyncValue<List<Service>>> {
         loading: () => AsyncValue.data(newServices),
         error: (_, __) => AsyncValue.data(newServices),
       );
+      if (append) {
+        _allServices = [..._allServices, ...newServices];
+      } else {
+        _allServices = newServices;
+      }
+      applyFilter(_searchQuery); // 👈 always apply filter after fetching
     } catch (e, st) {
       if (mounted) state = AsyncValue.error(e, st);
     } finally {

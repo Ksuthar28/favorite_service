@@ -9,9 +9,11 @@ class Strings {
   static const String tabFavorites = 'Favorites';
 
   // Messages
+  static const String noServiceFound = 'No service found';
   static const String noFavorites = 'No favorites yet';
   static const String errorMessage = 'Something went wrong. Please try again.';
   static const String loadingMessage = 'Loading...';
+  static const String searchService = 'Search service...';
 
   // Buttons / Actions
   static const String retry = 'Retry';

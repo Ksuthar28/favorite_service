@@ -21,7 +21,11 @@ class FakeServiceRepository extends ServiceRepositoryImpl {
   FakeServiceRepository(this._services);
 
   @override
-  Future<List<Service>> getServices({int page = 1, int limit = 20}) async {
+  Future<List<Service>> getServices({
+    int page = 1,
+    int limit = 20,
+    String query = '',
+  }) async {
     final start = (page - 1) * limit;
     final end = (start + limit).clamp(0, _services.length);
     if (start >= _services.length) return [];

@@ -6,7 +6,8 @@ import '../models/service_model.dart';
 
 /// API client responsible for fetching services from the remote endpoint.
 class ServiceApi {
-  static const String _baseUrl = 'https://jsonplaceholder.typicode.com';
+  // static const String _baseUrl = 'https://jsonplaceholder.typicode.com';
+  static const String _baseUrl = 'https://fakestoreapi.com';
 
   /// Fetches a paginated list of services from the API.
   /// [page] = current page number, [limit] = number of items per page.
@@ -14,8 +15,12 @@ class ServiceApi {
   Future<List<ServiceModel>> fetchServices({
     int page = 1,
     int limit = 20,
+    String query = '',
   }) async {
-    final url = Uri.parse('$_baseUrl/posts?_page=$page&_limit=$limit');
+    // final url = Uri.parse('$_baseUrl/posts?_page=$page&_limit=$limit');
+    final url = Uri.parse(
+      '$_baseUrl/products?_page=$page&_limit=$limit&search=$query',
+    );
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
